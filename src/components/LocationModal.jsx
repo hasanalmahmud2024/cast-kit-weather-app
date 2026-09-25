@@ -1,25 +1,46 @@
 import { LocateFixed, X } from "lucide-react";
 import { useState } from "react";
+import { getGeoLocation } from "../services/getGeoLocation";
 
+// This modal lets the user choose a location by city name or by using the device's current coordinates.
 const LocationModal = ({ onClose }) => {
-    const [city, setCity] = useState();
+    const [city, setCity] = useState("");
 
-    const handleSubmit = (e) => {
+    // Submit the city name only after trimming extra whitespace.
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const value = city.trim()
-        console.log(value)
+
+        // Ignore empty submissions before calling the geocoding API.
+        if (!value) {
+            console.warn("City field is empty.");
+            return;
+        }
+
+        try {
+            // Convert the city to latitude/longitude before requesting weather data.
+            const result = await getGeoLocation(value);
+            console.log("Location found : ", result); // {name: 'Dhaka', lat: 23.7104, long: 90.40744}
+
+        } catch (error) {
+            console.warn("Could not find weather data for that city.", error);
+        }
     }
 
-    /**
-    Use the browser Geolocation API to retrieve the user's current latitude and longitude when they select "Use My Location", with a 10-second timeout and basic error handling for denied or unavailable location access.
-     */
+
+    // Allow users to skip typing by using their device's current location.
+    // A timeout prevents the app from waiting indefinitely if location access is denied.
     const handleGeolocation = () => {
+        if (!navigator.geolocation) {
+            console.warn("Location access is denied.");
+            return;
+        }
         navigator.geolocation.getCurrentPosition((positions) => {
             const { latitude, longitude } = positions.coords;
             console.log(latitude, longitude)
 
         }, (error) => {
-            console.log(error)
+            console.warn("Geolocation failed:", error.message);
         }, {
             timeout: 10000
         })
