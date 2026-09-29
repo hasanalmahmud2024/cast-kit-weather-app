@@ -22,11 +22,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/weather",
-        element: <Weather />
-      },
-      {
-        path: "/*",
-        element: <ErrorState />
+        element: <Weather/>
       }
     ]
   },
