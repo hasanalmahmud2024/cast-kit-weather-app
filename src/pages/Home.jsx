@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { CloudSun, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import LocationModal from "../components/LocationModal";
+import Logo from "../components/Logo";
 
 const Home = () => {
     const [click, setClick] = useState(false);
@@ -8,8 +9,8 @@ const Home = () => {
     return (
         <>
             <div className="text-center max-w-lg mx-auto p-6 space-y-6">
-                <div className="inline-flex items-center justify-center p-4 bg-blue-50 rounded-full text-blue-500">
-                    <CloudSun size={56} />
+                <div className="inline-flex items-center justify-center rounded-full text-blue-500">
+                    <Logo/>
                 </div>
 
                 <div className="space-y-2">
