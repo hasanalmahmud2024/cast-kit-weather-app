@@ -116,7 +116,7 @@ const Weather = () => {
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.4 }}
-                    className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center min-h-[360px]"
+                    className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col items-center justify-center min-h-90"
                 >
                     <AnimatePresence mode="wait">
                         <motion.div

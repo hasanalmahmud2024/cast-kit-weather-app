@@ -1,35 +1,41 @@
 import { useState } from "react";
+import { CloudSun, Search } from "lucide-react";
 import LocationModal from "../components/LocationModal";
 
 const Home = () => {
     const [click, setClick] = useState(false);
 
-
     return (
         <>
-            <div className="text-center">
-                <h1 className="text-6xl font-bold text-blue-500">
-                    CastKit <span className="text-blue-400">Weather</span>
-                </h1>
-                <p className="py-4 text-lg text-gray-500">
-                    Check today's weather
-                </p>
+            <div className="text-center max-w-lg mx-auto p-6 space-y-6">
+                <div className="inline-flex items-center justify-center p-4 bg-blue-50 rounded-full text-blue-500">
+                    <CloudSun size={56} />
+                </div>
+
+                <div className="space-y-2">
+                    <h1 className="text-5xl md:text-6xl font-bold text-blue-500 tracking-tight">
+                        CastKit <span className="text-blue-400">Weather</span>
+                    </h1>
+                    <p className="text-lg text-gray-500 font-medium">
+                        Real-time forecasts & live conditions for any location
+                    </p>
+                </div>
+
                 <div>
                     <button
                         type="button"
                         onClick={() => setClick(true)}
-                        className="rounded-4xl bg-blue-400 px-5 py-2 text-lg font-medium text-gray-700 transition-all delay-100 hover:scale-110"
+                        className="inline-flex items-center gap-2 rounded-4xl bg-blue-500 px-6 py-3 text-lg font-medium text-white shadow-md hover:bg-blue-600 hover:scale-105 active:scale-95 transition-all cursor-pointer"
                     >
-                        Check Weather
+                        <Search size={20} />
+                        <span>Check Weather</span>
                     </button>
                 </div>
             </div>
 
-            {
-                click && <LocationModal onClose={()=>setClick(false)} />
-            }
+            {click && <LocationModal onClose={() => setClick(false)} />}
         </>
-    )
-}
+    );
+};
 
 export default Home;

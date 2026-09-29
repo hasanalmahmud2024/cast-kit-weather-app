@@ -3,7 +3,7 @@ import { Sun, Cloud } from "lucide-react";
 
 const WeatherLoader = () => {
     return (
-        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+        <div className="flex flex-col items-center justify-center min-h-100 gap-4">
             <div className="relative flex items-center justify-center w-24 h-24">
                 {/* Rotating Sun */}
                 <motion.div
