@@ -1,10 +1,18 @@
 import { LocateFixed, X } from "lucide-react";
 import { useState } from "react";
 import { getGeoLocation } from "../services/getGeoLocation";
+import { useNavigate } from "react-router";
 
 // This modal lets the user choose a location by city name or by using the device's current coordinates.
+// @ts-ignore
 const LocationModal = ({ onClose }) => {
+    const navigate = useNavigate();
     const [city, setCity] = useState("");
+    const [error, setError] = useState("");
+
+    const goToPage = (location) => {
+        navigate("/weather", { state: { location } })
+    }
 
     // Submit the city name only after trimming extra whitespace.
     const handleSubmit = async (e) => {
@@ -13,34 +21,41 @@ const LocationModal = ({ onClose }) => {
 
         // Ignore empty submissions before calling the geocoding API.
         if (!value) {
-            console.warn("City field is empty.");
+            setError("City field is empty.");
             return;
         }
 
         try {
             // Convert the city to latitude/longitude before requesting weather data.
-            const result = await getGeoLocation(value);
-            console.log("Location found : ", result); // {name: 'Dhaka', lat: 23.7104, long: 90.40744}
+            const location = await getGeoLocation(value);
+            // console.log("Location found : ", result); // {name: 'Dhaka', lat: 23.7104, long: 90.40744}
+            if (!location) {
+                setError("GeoCoding Request Failed!")
+            } else {
+                goToPage(location)
+            }
 
         } catch (error) {
             console.warn("Could not find weather data for that city.", error);
+            setError(error instanceof Error ? error.message : "Could not find that city.");
         }
     }
 
 
-    // Allow users to skip typing by using their device's current location.
-    // A timeout prevents the app from waiting indefinitely if location access is denied.
+    // Allow users to request device's current location and stop waiting if the response takes too long.
     const handleGeolocation = () => {
         if (!navigator.geolocation) {
-            console.warn("Location access is denied.");
+            setError("The browser does not support geolocation.");
             return;
         }
         navigator.geolocation.getCurrentPosition((positions) => {
             const { latitude, longitude } = positions.coords;
-            console.log(latitude, longitude)
+            // console.log(latitude, longitude)
+            goToPage({ name: 'Your Location', lat: latitude, long: longitude })
 
         }, (error) => {
-            console.warn("Geolocation failed:", error.message);
+            // console.warn("Geolocation failed:", error.message);
+            setError(error.message || "Could not get your location.");
         }, {
             timeout: 10000
         })
@@ -89,6 +104,10 @@ const LocationModal = ({ onClose }) => {
                             <LocateFixed /> <span>Use My Location</span>
                         </div>
                     </button>
+                </div>
+
+                <div className="text-center">
+                    {error && <p className="text-md text-red-600 font-medium pt-2">{error}</p>}
                 </div>
             </div>
         </div>)
