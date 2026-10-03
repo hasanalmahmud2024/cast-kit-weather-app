@@ -6,18 +6,13 @@ import { getWeatherTheme } from "../utils/weatherThemes";
 
 const Header = ({ weather }) => {
     const navigate = useNavigate();
-    // Local state to toggle the Location Modal overlay
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // Compute active weather theme matching the current weather condition
-    const theme = getWeatherTheme(weather?.condition, weather?.description);
+    const theme = getWeatherTheme(weather?.condition, weather?.description, weather?.isDay);
 
     return (
         <>
-            {/* Main Header Container with dynamic weather card styling */}
-            <header className={`flex items-center justify-between rounded-3xl border p-4 shadow-sm mb-6 transition-all duration-300 ${theme.cardBg}`}>
-
-                {/* Left Section: Back Home Button & App Brand */}
+            <header className={`flex items-center justify-between rounded-3xl border p-4 shadow-sm transition-all duration-300 ${theme.cardBg}`}>
                 <div className="flex items-center gap-3">
                     <button
                         type="button"
@@ -36,7 +31,6 @@ const Header = ({ weather }) => {
                     </div>
                 </div>
 
-                {/* Right Section: Search New Location Button */}
                 <div>
                     <button
                         type="button"
@@ -49,7 +43,6 @@ const Header = ({ weather }) => {
                 </div>
             </header>
 
-            {/* Location Search Modal Popup */}
             {isModalOpen && <LocationModal onClose={() => setIsModalOpen(false)} />}
         </>
     );

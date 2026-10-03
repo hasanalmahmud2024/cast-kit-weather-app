@@ -1,11 +1,15 @@
 import { Outlet } from "react-router";
+import Footer from "../components/Footer";
 
 const MainLayout = () => {
     return (
-        <div className="min-h-screen bg-slate-100 p-4">
-            <div className="mx-auto w-full max-w-6xl">
+        <div className="min-h-screen flex flex-col justify-between">
+            {/* Main Content View */}
+            <main className="flex-1">
                 <Outlet />
-            </div>
+            </main>
+
+            <Footer />
         </div>
     );
 };

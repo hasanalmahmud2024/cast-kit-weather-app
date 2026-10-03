@@ -1,53 +1,56 @@
-import { Droplets, MapPin, Thermometer, Wind } from "lucide-react";
+import { Droplets, Thermometer, Wind, Gauge, CloudRain, Compass } from "lucide-react";
 import MetricCard from "./MetricCard";
 import { getWeatherTheme } from "../utils/weatherThemes";
 
-const WeatherCard = ({ place, weather }) => {
-    // Pass condition and description for reliable theme matching
-    const theme = getWeatherTheme(weather?.condition, weather?.description);
+const WeatherCard = ({ weather }) => {
+    const theme = getWeatherTheme(weather?.condition, weather?.description, weather?.isDay);
 
-    const metrics = [
+    const primaryMetrics = [
         { icon: Thermometer, label: "Feels Like", value: weather?.feelsLike, unit: "°C" },
         { icon: Droplets, label: "Humidity", value: weather?.humidity, unit: "%" },
-        { icon: Wind, label: "Wind", value: weather?.windSpeed, unit: "km/h" },
+        { icon: Wind, label: "Wind Speed", value: weather?.windSpeed, unit: "km/h" },
+    ];
+
+    const atmosphericMetrics = [
+        { icon: Gauge, label: "Pressure", value: weather?.surfacePressure, unit: "hPa" },
+        { icon: CloudRain, label: "Precipitation", value: weather?.precipitation, unit: "mm" },
+        { icon: Compass, label: "Wind Dir.", value: weather?.windDirection, unit: "°" },
     ];
 
     return (
-        <div className={`relative overflow-hidden rounded-3xl border p-6 transition-all duration-300 space-y-6 ${theme.cardBg}`}>
-            {/* Ambient Glow */}
-            <div className={`absolute -right-12 -top-12 h-40 w-40 rounded-full blur-2xl pointer-events-none ${theme.glowBg}`} />
+        <div className={`relative overflow-hidden rounded-3xl border p-6 transition-all duration-300 space-y-5 ${theme.cardBg}`}>
+            <h2 className={`text-lg font-bold tracking-wide ${theme.titleColor}`}>
+                Condition Metrics
+            </h2>
 
-            <div className="relative space-y-2">
-                <h1 className={`text-2xl font-bold ${theme.titleColor}`}>
-                    Today's <span className={theme.textColor}>Weather</span> Details
-                </h1>
-                <div className="flex items-center gap-2">
-                    <MapPin size={28} className={`${theme.textColor} shrink-0`} />
-                    <h2 className={`text-3xl font-bold ${theme.titleColor}`}>{place?.name}</h2>
+            {/* Primary Metrics */}
+            <div className="space-y-2">
+                <span className="text-xs font-semibold tracking-wider uppercase opacity-60">Overview</span>
+                <div className="grid grid-cols-3 gap-3">
+                    {primaryMetrics.map((metric) => (
+                        <MetricCard
+                            key={metric.label}
+                            {...metric}
+                            metricBg={theme.metricBg}
+                            textColor={theme.textColor}
+                        />
+                    ))}
                 </div>
             </div>
 
-            <div className="relative flex items-baseline justify-between border-y border-gray-500/20 py-4">
-                <div>
-                    <h2 className={`text-6xl font-extrabold ${theme.textColor}`}>
-                        {weather?.temperature}°C
-                    </h2>
-                    <p className="text-lg font-medium opacity-80 capitalize mt-1">
-                        {weather?.description}
-                    </p>
+            {/* Atmospheric Metrics */}
+            <div className="space-y-2">
+                <span className="text-xs font-semibold tracking-wider uppercase opacity-60">Atmosphere</span>
+                <div className="grid grid-cols-3 gap-3">
+                    {atmosphericMetrics.map((metric) => (
+                        <MetricCard
+                            key={metric.label}
+                            {...metric}
+                            metricBg={theme.metricBg}
+                            textColor={theme.textColor}
+                        />
+                    ))}
                 </div>
-            </div>
-
-            {/* Metric Highlights */}
-            <div className="relative grid grid-cols-3 gap-3">
-                {metrics.map((metric) => (
-                    <MetricCard
-                        key={metric.label}
-                        {...metric}
-                        metricBg={theme.metricBg}
-                        textColor={theme.textColor}
-                    />
-                ))}
             </div>
         </div>
     );

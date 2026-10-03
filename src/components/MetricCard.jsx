@@ -5,7 +5,7 @@ const MetricCard = ({ icon: Icon, label, value, unit, metricBg, textColor }) => 
             <Icon size={18} className={textColor || "text-blue-400"} />
             <span className="text-sm font-medium text-gray-500">{label}</span>
         </div>
-        <p className="text-2xl font-bold text-gray-700">
+        <p className={`text-2xl font-bold ${textColor}`}>
             {value ?? "--"}
             {unit && <span className="text-xs font-normal text-gray-500"> {unit}</span>}
         </p>

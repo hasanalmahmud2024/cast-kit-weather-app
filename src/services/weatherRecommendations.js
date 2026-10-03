@@ -1,90 +1,107 @@
 /**
- * Recommendations use the stable condition identifiers returned by getWeather.
- * Keep these keys in sync with the condition values in WMO_CODES.
+ * Dynamic Weather Recommendation Engine
+ * Evaluates real-time metrics (temperature, wind speed, humidity, precipitation, day/night)
+ * to provide context-aware activity and gear recommendations.
  */
-export const WEATHER_RECOMMENDATIONS = {
-    clear: {
-        type: "clear",
-        label: "Clear",
-        text: "Enjoy the clear weather. Consider sun protection if you'll be outside for a while."
-    },
-    partly_cloudy: {
-        type: "partly_cloudy",
-        label: "Partly Cloudy",
-        text: "Conditions look comfortable for outdoor plans."
-    },
-    overcast: {
-        type: "overcast",
-        label: "Overcast",
-        text: "It may feel dim or cool under the clouds. Bring an extra layer if needed."
-    },
-    fog: {
-        type: "fog",
-        label: "Fog",
-        text: "Visibility may be reduced. Allow extra time and use caution while driving."
-    },
-    drizzle: {
-        type: "drizzle",
-        label: "Drizzle",
-        text: "Light rain is possible. Consider bringing a light rain jacket or umbrella."
-    },
-    freezing_drizzle: {
-        type: "freezing_drizzle",
-        label: "Freezing Drizzle",
-        text: "Freezing drizzle can make surfaces slippery. Use caution outdoors and on the road."
-    },
-    rain: {
-        type: "rain",
-        label: "Rain",
-        text: "Rain is expected. Bring an umbrella or waterproof clothing."
-    },
-    freezing_rain: {
-        type: "freezing_rain",
-        label: "Freezing Rain",
-        text: "Freezing rain can create dangerous icy surfaces. Check local conditions before traveling."
-    },
-    snow: {
-        type: "snow",
-        label: "Snow",
-        text: "Snow may affect travel and make surfaces slippery. Allow extra time and use caution."
-    },
-    rain_showers: {
-        type: "rain_showers",
-        label: "Rain Showers",
-        text: "Showers may come and go. Keep rain protection handy."
-    },
-    snow_showers: {
-        type: "snow_showers",
-        label: "Snow Showers",
-        text: "Snow showers may reduce visibility or make surfaces slippery. Take care while traveling."
-    },
-    thunderstorm: {
-        type: "thunderstorm",
-        label: "Thunderstorm",
-        text: "Seek shelter indoors during thunderstorms and follow local weather alerts."
-    },
-    thunderstorm_hail: {
-        type: "thunderstorm_hail",
-        label: "Thunderstorm with Hail",
-        text: "Stay indoors and away from windows during hail. Follow local weather alerts."
+
+export const getWeatherRecommendation = (weather) => {
+    if (!weather) return null;
+
+    const {
+        condition = "",
+        description = "",
+        temperature = 20,
+        feelsLike = 20,
+        windSpeed = 0,
+        humidity = 50,
+        precipitation = 0,
+        isDay = true,
+    } = weather;
+
+    const c = `${condition} ${description}`.toLowerCase();
+
+    // Recommendation state containers
+    let level = "info"; // "info" | "warning" | "alert"
+    let actionBadge = "General Advisory";
+    let mainText = "";
+    let outfitAdvice = "";
+    let activityAdvice = "";
+
+    // 1. Severe Weather Rules (Thunderstorms, Heavy Rain, Snow, Freezing Rain)
+    if (c.includes("thunderstorm") || c.includes("storm") || c.includes("hail")) {
+        level = "alert";
+        actionBadge = "Stay Indoors";
+        mainText = "Thunderstorms and severe lightning reported in your area.";
+        outfitAdvice = "Heavy rain gear if travel is essential.";
+        activityAdvice = "Avoid open areas, electrical appliances, and outdoor plans.";
+    } else if (c.includes("freezing") || c.includes("snow")) {
+        level = "warning";
+        actionBadge = "Ice & Winter Advisory";
+        mainText = "Sub-zero or freezing conditions may lead to slippery surfaces.";
+        outfitAdvice = "Thermal layers, insulated coat, gloves, and anti-slip footwear.";
+        activityAdvice = "Allow extra travel time and exercise caution on roads.";
+    } else if (precipitation > 2 || c.includes("rain") || c.includes("drizzle")) {
+        level = "warning";
+        actionBadge = "Rain Protection Required";
+        mainText = precipitation > 5
+            ? "Heavy rainfall observed. Low visibility and localized puddles likely."
+            : "Light to moderate rain showers in effect.";
+        outfitAdvice = "Waterproof jacket, boots, or an umbrella.";
+        activityAdvice = "Great time for indoor venues, cafes, or cozy indoor activities.";
     }
-};
 
-/**
- * Accepts either a weather object or a condition string.
- * Returns null when no condition is provided.
- */
-export const getWeatherRecommendation = (weatherOrCondition) => {
-    const condition =
-        typeof weatherOrCondition === "string"
-            ? weatherOrCondition
-            : weatherOrCondition?.condition;
+    // 2. Temperature & Heat/Cold Threshold Rules (if no severe precipitation)
+    else if (temperature >= 32 || feelsLike >= 35) {
+        level = "warning";
+        actionBadge = "High Heat Notice";
+        mainText = "High temperatures detected. Stay hydrated and limit heat exertion.";
+        outfitAdvice = "Lightweight, breathable cotton clothing and sunglasses.";
+        activityAdvice = "Schedule outdoor tasks for early morning or after sunset.";
+    } else if (temperature <= 5 || feelsLike <= 2) {
+        level = "warning";
+        actionBadge = "Cold Weather Alert";
+        mainText = "Cool temperatures require extra thermal insulation.";
+        outfitAdvice = "Heavy winter coat, scarf, beanie, and warm socks.";
+        activityAdvice = "Limit prolonged skin exposure to cold wind gusts.";
+    }
 
-    if (!condition) return null;
+    // 3. Moderate / Pleasant Weather Rules
+    else if (c.includes("clear") || c.includes("sunny")) {
+        if (isDay) {
+            level = "info";
+            actionBadge = "Ideal Outdoor Weather";
+            mainText = "Clear skies and comfortable conditions outside.";
+            outfitAdvice = "Casual wear with UV sun protection (sunscreen/sunglasses).";
+            activityAdvice = "Perfect for outdoor sports, walking, or a park picnic.";
+        } else {
+            level = "info";
+            actionBadge = "Clear Stargazing Night";
+            mainText = "Clear nighttime sky with calm atmospheric conditions.";
+            outfitAdvice = "A light sweater or jacket for cool evening breezes.";
+            activityAdvice = "Great night for a quiet stroll or stargazing.";
+        }
+    } else if (c.includes("cloud") || c.includes("overcast") || c.includes("fog")) {
+        level = "info";
+        actionBadge = "Overcast Conditions";
+        mainText = c.includes("fog")
+            ? "Reduced atmospheric visibility due to mist or fog."
+            : "Cloudy skies keeping temperatures moderate.";
+        outfitAdvice = "A comfortable windbreaker or light layer.";
+        activityAdvice = c.includes("fog")
+            ? "Use fog lights while driving and stay alert."
+            : "Good conditions for outdoor jogging or errands.";
+    }
 
-    return WEATHER_RECOMMENDATIONS[condition] ?? {
-        type: "general",
-        label: "Weather",
-        text: "Check local conditions and weather alerts before making outdoor plans."
+    // 4. Wind Modifier Add-on
+    if (windSpeed > 30) {
+        mainText += ` Note: Strong wind gusts up to ${windSpeed} km/h recorded.`;
+    }
+
+    return {
+        level,
+        actionBadge,
+        text: mainText,
+        outfitAdvice,
+        activityAdvice,
     };
 };

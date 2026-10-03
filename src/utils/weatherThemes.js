@@ -1,10 +1,21 @@
-// Dynamic theme configuration mapped directly to WMO condition keys from getWeather.js
-export const getWeatherTheme = (condition = "", description = "") => {
-    const c = (condition || "").toLowerCase();
-    const d = (description || "").toLowerCase();
-    const combined = `${c} ${d}`;
+// Dynamic theme configuration
+export const getWeatherTheme = (condition = "", description = "", isDay = true) => {
+    const combined = `${condition} ${description}`.toLowerCase();
 
-    // Rain, Drizzle, Rain Showers, Freezing Rain
+    // Clear Night Theme
+    if (!isDay && (combined.includes("clear") || combined.includes("sunny"))) {
+        return {
+            pageBg: "bg-gradient-to-br from-indigo-950 via-slate-900 to-blue-950 text-slate-100",
+            cardBg: "bg-indigo-950/40 backdrop-blur-md border-indigo-500/30 shadow-lg shadow-indigo-950/40",
+            textColor: "text-indigo-300",
+            titleColor: "text-white",
+            badgeBg: "bg-indigo-500/20 text-indigo-200 border border-indigo-500/30",
+            metricBg: "bg-slate-900/60 border-indigo-500/20",
+            glowBg: "bg-indigo-500/20",
+        };
+    }
+
+    // Rain / Drizzle / Showers Theme
     if (combined.includes("rain") || combined.includes("drizzle")) {
         return {
             pageBg: "bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-950 text-slate-100",
@@ -17,7 +28,7 @@ export const getWeatherTheme = (condition = "", description = "") => {
         };
     }
 
-    // Snow or Snow Showers
+    // Snow Theme
     if (combined.includes("snow")) {
         return {
             pageBg: "bg-gradient-to-br from-slate-100 via-sky-100 to-indigo-100 text-slate-800",
@@ -30,7 +41,7 @@ export const getWeatherTheme = (condition = "", description = "") => {
         };
     }
 
-    // Thunderstorms
+    // Thunderstorm Theme
     if (combined.includes("thunderstorm") || combined.includes("storm") || combined.includes("hail")) {
         return {
             pageBg: "bg-gradient-to-br from-slate-950 via-purple-950 to-indigo-950 text-slate-100",
@@ -43,21 +54,8 @@ export const getWeatherTheme = (condition = "", description = "") => {
         };
     }
 
-    // Fog / Mist / Rime Fog
-    if (combined.includes("fog")) {
-        return {
-            pageBg: "bg-gradient-to-br from-slate-200 via-teal-100/50 to-zinc-300 text-slate-800",
-            cardBg: "bg-white/80 backdrop-blur-md border-teal-300/50 shadow-lg shadow-teal-900/5",
-            textColor: "text-teal-700",
-            titleColor: "text-slate-900",
-            badgeBg: "bg-teal-100 text-teal-800 border border-teal-300",
-            metricBg: "bg-teal-50/60 border-teal-200/50",
-            glowBg: "bg-teal-400/25",
-        };
-    }
-
-    // Clouds, Overcast, Partly Cloudy
-    if (combined.includes("cloud") || combined.includes("overcast")) {
+    // Clouds / Overcast Theme
+    if (combined.includes("cloud") || combined.includes("overcast") || combined.includes("fog")) {
         return {
             pageBg: "bg-gradient-to-br from-slate-200 via-blue-100/40 to-slate-300 text-slate-800",
             cardBg: "bg-white/80 backdrop-blur-md border-slate-300/70 shadow-lg shadow-slate-900/5",
@@ -69,7 +67,7 @@ export const getWeatherTheme = (condition = "", description = "") => {
         };
     }
 
-    // Default: Clear / Sunny
+    // Default Clear Sunny Day Theme
     return {
         pageBg: "bg-gradient-to-br from-amber-50 via-orange-50 to-sky-100 text-slate-800",
         cardBg: "bg-white/80 backdrop-blur-md border-amber-200/80 shadow-lg shadow-amber-900/5",

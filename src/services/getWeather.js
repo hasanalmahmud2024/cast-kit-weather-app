@@ -297,17 +297,12 @@ export const getWeather = async (place) => {
     const humidity = Number(now.relative_humidity_2m);
     const windSpeed = Number(now.wind_speed_10m);
     const feelsLike = Number(now.apparent_temperature);
+    const surfacePressure = Number(now.surface_pressure);
+    const precipitation = Number(now.precipitation);
+    const windDirection = Number(now.wind_direction_10m);
+    const isDay = Number(now.is_day);
 
-    if (
-        !Number.isFinite(temperature) ||
-        !Number.isFinite(humidity) ||
-        !Number.isFinite(windSpeed) ||
-        !Number.isFinite(feelsLike)
-    ) {
-        throw new Error("Some weather values are missing or invalid.");
-    }
-
-    const icon = weather.icon === "clear" && now.is_day === 0 ? "clear_night" : weather.icon;
+    const icon = weather.icon === "clear" && isDay === 0 ? "clear_night" : weather.icon;
 
     return {
         location: name,
@@ -315,6 +310,10 @@ export const getWeather = async (place) => {
         humidity,
         windSpeed,
         feelsLike: Math.round(feelsLike),
+        surfacePressure: Number.isFinite(surfacePressure) ? Math.round(surfacePressure) : null,
+        precipitation: Number.isFinite(precipitation) ? precipitation : 0,
+        windDirection: Number.isFinite(windDirection) ? windDirection : null,
+        isDay: isDay === 1,
         condition: weather.condition,
         description: weather.description,
         conditionLabel: weather.label,

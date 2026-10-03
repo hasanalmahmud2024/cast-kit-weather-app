@@ -1,52 +1,63 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { WeatherVisual } from "../components/WeatherVisual";
-import { Thermometer } from "lucide-react";
+import { Thermometer, Moon, Sun, MapPin } from "lucide-react";
 import { getWeatherTheme } from "../utils/weatherThemes";
 
-const WeatherType = ({ weather }) => {
-    const theme = getWeatherTheme(weather?.condition || weather?.description);
+const WeatherType = ({ weather, place }) => {
+    // Determine active weather theme including condition, description, and day/night state
+    const theme = getWeatherTheme(weather?.condition, weather?.description, weather?.isDay);
 
     return (
-        <div className="h-full">
-            <motion.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
-                className={`relative overflow-hidden flex h-full flex-col items-center justify-center rounded-3xl border p-6 transition-all duration-300 ${theme.cardBg} ${theme.gradient}`}
-            >
-                {/* Ambient Center Glow */}
-                <div className={`absolute h-48 w-48 rounded-full blur-3xl pointer-events-none ${theme.glowBg}`} />
+        <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className={`relative overflow-hidden rounded-3xl border p-6 md:p-8 transition-all duration-300 ${theme.cardBg}`}
+        >
+            {/* Ambient Background Glow */}
+            <div className={`absolute -right-16 -top-16 h-64 w-64 rounded-full blur-3xl pointer-events-none ${theme.glowBg}`} />
 
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                {/* Left Side: Location, Day/Night Indicator & Big Temperature */}
+                <div className="space-y-3 text-center md:text-left">
+                    <div className="inline-flex items-center gap-2 text-sm font-medium opacity-80">
+                        <MapPin size={18} className={theme.textColor} />
+                        <span>{place?.name}</span>
+                        <span className="opacity-40">•</span>
+                        {weather?.isDay ? <Sun size={16} /> : <Moon size={16} />}
+                        <span>{weather?.isDay ? "Daytime" : "Nighttime"}</span>
+                    </div>
+
+                    <div className="flex items-baseline justify-center md:justify-start gap-3">
+                        <h1 className={`text-6xl md:text-7xl font-extrabold tracking-tight ${theme.textColor}`}>
+                            {weather?.temperature}°C
+                        </h1>
+                        <p className={`text-xl font-semibold capitalize ${theme.titleColor}`}>
+                            {weather?.description}
+                        </p>
+                    </div>
+
+                    <div className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium ${theme.badgeBg}`}>
+                        <Thermometer size={16} />
+                        <span>Feels like {weather?.feelsLike}°C</span>
+                    </div>
+                </div>
+
+                {/* Right Side: Animated Weather Visual */}
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={weather?.description}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
                         transition={{ duration: 0.3 }}
-                        className="relative z-10 flex flex-col items-center text-center gap-5"
+                        className="shrink-0"
                     >
-                        {/* Dynamic Icon Visual */}
-                        <WeatherVisual description={weather?.description} />
-
-                        <div className="space-y-1">
-                            <p className="text-sm font-medium text-gray-500">
-                                Current Condition
-                            </p>
-                            <h3 className={`text-3xl font-bold capitalize ${theme.textColor}`}>
-                                {weather?.description}
-                            </h3>
-                        </div>
-
-                        {/* Theme Badge */}
-                        <div className={`rounded-4xl px-5 py-2 text-lg font-medium flex items-center gap-2 shadow-xs ${theme.badgeBg}`}>
-                            <Thermometer size={20} />
-                            <span>Feels Like: {weather?.feelsLike}°C</span>
-                        </div>
+                        <WeatherVisual description={weather?.description} isDay={weather?.isDay} />
                     </motion.div>
                 </AnimatePresence>
-            </motion.div>
-        </div>
+            </div>
+        </motion.div>
     );
 };
 

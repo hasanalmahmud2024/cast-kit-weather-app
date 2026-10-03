@@ -8,6 +8,7 @@ import WeatherCard from "../components/WeatherCard";
 import RecommendationCard from "../components/RecommendationCard";
 import WeatherType from "../components/WeatherType";
 import Header from "../components/Header";
+import WeatherParticles from "../components/WeatherParticles";
 import { getWeatherTheme } from "../utils/weatherThemes";
 
 const Weather = () => {
@@ -48,29 +49,32 @@ const Weather = () => {
     if (!weather) return <WeatherLoader />;
 
     const recommendation = getWeatherRecommendation(weather);
-    // Get dynamic page theme based on both condition code and description text
-    const theme = getWeatherTheme(weather?.condition, weather?.description);
+    const theme = getWeatherTheme(weather?.condition, weather?.description, weather?.isDay);
 
     return (
-        <div className={`min-h-screen transition-colors duration-500 p-4 -m-4 ${theme.pageBg}`}>
-            <div className="mx-auto flex max-w-5xl flex-col space-y-6">
-                <Header weather={weather}/>
+        <div className={`relative w-full min-h-screen transition-colors duration-500 p-4 md:p-8 ${theme.pageBg}`}>
+            <WeatherParticles weather={weather} />
 
-                <div className="grid flex-1 gap-6 md:grid-cols-2">
-                    {/* Column 1: Details & Recommendation */}
-                    <div className="space-y-4">
-                        <WeatherCard place={place} weather={weather} />
-                        {recommendation && (
-                            <RecommendationCard
-                                weather={weather}
-                                place={place}
-                                recommendation={recommendation}
-                            />
-                        )}
-                    </div>
+            <div className="relative z-10 mx-auto max-w-5xl space-y-6">
+                {/* Navigation Header */}
+                <Header weather={weather} />
 
-                    {/* Column 2: Animated Condition Hero */}
-                    <WeatherType weather={weather} />
+                {/* Top Row: Full-Width Animated Condition Hero */}
+                <WeatherType weather={weather} place={place} />
+
+                {/* Bottom Row: Balanced 2-Column Details */}
+                <div className="grid gap-6 md:grid-cols-2 items-start">
+                    {/* Left Column: 6-Metric Highlights */}
+                    <WeatherCard place={place} weather={weather} />
+
+                    {/* Right Column: Live Recommendation */}
+                    {recommendation && (
+                        <RecommendationCard
+                            weather={weather}
+                            place={place}
+                            recommendation={recommendation}
+                        />
+                    )}
                 </div>
             </div>
         </div>
