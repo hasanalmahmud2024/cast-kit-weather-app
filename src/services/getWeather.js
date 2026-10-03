@@ -1,4 +1,3 @@
-
 /**
  * WMO Weather Code Mapping
  * - condition: Stable machine-readable category for application logic.
@@ -258,42 +257,67 @@ const WMO_CODES = {
     }
 };
 
-
-
+const isNumber = (value) => typeof value === "number" && Number.isFinite(value);
 
 export const getWeather = async (place) => {
-    const { name, lat, long } = place;
+    const { name, lat, long } = place ?? {};
 
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current=temperature_2m,is_day,wind_speed_10m,weather_code,relative_humidity_2m,apparent_temperature,wind_direction_10m,precipitation,rain,showers,snowfall,surface_pressure`
+    if (!isNumber(lat) || !isNumber(long)) {
+        throw new Error("Location coordinates are missing or invalid.");
+    }
+
+    const url =
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}` +
+        `&current=temperature_2m,is_day,wind_speed_10m,weather_code,relative_humidity_2m,apparent_temperature,wind_direction_10m,precipitation,rain,showers,snowfall,surface_pressure`;
 
     const result = await fetch(url);
 
     if (!result.ok) {
         throw new Error(`Weather request failed (${result.status}).`);
     }
+
     const data = await result.json();
-    const now = data.current;
+    const now = data?.current;
+
     if (!now) {
         throw new Error("Weather response did not contain current conditions.");
     }
 
-    const weather = WMO_CODES[now.weather_code];
+    const weatherCode = Number(now.weather_code);
+    if (!Number.isFinite(weatherCode)) {
+        throw new Error("Weather code is missing or invalid.");
+    }
+
+    const weather = WMO_CODES[weatherCode];
     if (!weather) {
-        throw new Error(`Unsupported weather code: ${now.weather_code}.`);
+        throw new Error(`Unsupported weather code: ${weatherCode}.`);
+    }
+
+    const temperature = Number(now.temperature_2m);
+    const humidity = Number(now.relative_humidity_2m);
+    const windSpeed = Number(now.wind_speed_10m);
+    const feelsLike = Number(now.apparent_temperature);
+
+    if (
+        !Number.isFinite(temperature) ||
+        !Number.isFinite(humidity) ||
+        !Number.isFinite(windSpeed) ||
+        !Number.isFinite(feelsLike)
+    ) {
+        throw new Error("Some weather values are missing or invalid.");
     }
 
     const icon = weather.icon === "clear" && now.is_day === 0 ? "clear_night" : weather.icon;
 
     return {
         location: name,
-        temperature: Math.round(now.temperature_2m),
-        humidity: now.relative_humidity_2m,
-        windSpeed: now.wind_speed_10m,
-        feelsLike: Math.round(now.apparent_temperature),
+        temperature: Math.round(temperature),
+        humidity,
+        windSpeed,
+        feelsLike: Math.round(feelsLike),
         condition: weather.condition,
         description: weather.description,
         conditionLabel: weather.label,
         icon,
-    }
-
-}
+    };
+};

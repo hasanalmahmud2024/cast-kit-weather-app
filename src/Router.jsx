@@ -1,5 +1,4 @@
-import { createBrowserRouter } from "react-router";
-import { RouterProvider } from "react-router/dom";
+import { createBrowserRouter, RouterProvider } from "react-router";
 import About from "./pages/About";
 import Home from "./pages/Home";
 import MainLayout from "./layouts/MainLayout";
@@ -8,34 +7,26 @@ import ErrorState from "./components/ErrorState";
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    Component: MainLayout,
-    errorElement: <ErrorState type="route" message="This page could not be loaded." />,
+    element: <MainLayout />,
     children: [
+      { path: "/", element: <Home /> },
+      { path: "/weather", element: <Weather /> },
+      { path: "/about", element: <About /> },
       {
-        index: true,
-        element: <Home />
+        path: "*",
+        element: (
+          <ErrorState
+            type="route"
+            message="The page you requested could not be found."
+          />
+        ),
       },
-      {
-        path: "/about",
-        element: <About />
-      },
-      {
-        path: "/weather",
-        element: <Weather/>
-      }
-    ]
+    ],
   },
-
 ]);
 
 function Router() {
-
-  return (
-    <>
-      <RouterProvider router={router} />
-    </>
-  )
+  return <RouterProvider router={router} />;
 }
 
 export default Router;

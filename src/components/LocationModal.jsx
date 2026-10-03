@@ -12,30 +12,33 @@ const LocationModal = ({ onClose }) => {
     // Navigates to the weather page with the selected location payload
     const goToPage = (location) => {
         navigate("/weather", { state: { location } });
+
+        if (onClose) onClose();
     };
 
     // Submits manual city input and requests geo coordinates
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const value = city.trim();
 
-        if (!value) {
+        // Prevent empty searches and duplicate error states
+        const trimmedCity = city.trim();
+        if (!trimmedCity) {
             setError("Please enter a city name.");
             return;
         }
 
-        setError("");
         setLoading(true);
+        setError("");
 
         try {
+            const location = await getGeoLocation(trimmedCity);
 
-            // Convert the city to latitude/longitude before requesting weather data.
-            const location = await getGeoLocation(value);
+            // Guard in case the API returns an unexpected empty payload
             if (!location) {
-                setError("Could not find location coordinates.");
-            } else {
-                goToPage(location);
+                throw new Error("No location data was returned for that city.");
             }
+
+            goToPage(location);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Could not find that city.");
         } finally {
@@ -46,97 +49,107 @@ const LocationModal = ({ onClose }) => {
     // Triggers device location via browser Geolocation API
     const handleGeolocation = () => {
         if (!navigator.geolocation) {
-            setError("Your browser does not support geolocation.");
+            setError("Geolocation is not supported by this browser.");
             return;
         }
 
-        setError("");
         setLoading(true);
+        setError("");
 
-        navigator.geolocation.getCurrentPosition((position) => {
-                const { latitude, longitude } = position.coords;
-                goToPage({ name: "Your Location", lat: latitude, long: longitude });
+        navigator.geolocation.getCurrentPosition(
+            // successCallback
+            async (position) => {
+                try {
+                    const { latitude, longitude } = position.coords;
+
+                    // make the location object simple for the weather page
+                    goToPage({
+                        name: "Current Location",
+                        lat: latitude,
+                        long: longitude,
+                    });
+                } catch (err) {
+                    setError(err instanceof Error ? err.message : "Unable to fetch your location.");
+                } finally {
+                    setLoading(false);
+                }
             },
-            (err) => {
-                setError(err.message || "Could not access your location.");
+            // errorCallback
+            (geoError) => {
+                setError(
+                    geoError.message || "Location access was denied. Please search for a city instead."
+                );
                 setLoading(false);
             },
-            { timeout: 10000 }
+            // options
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0,
+            }
         );
     };
 
     return (
-        /* Dark backdrop overlay */
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900/60 z-50 p-4">
-            {/* Modal card container with responsive max-width */}
-            <div className="w-full max-w-md bg-white shadow-2xl rounded-3xl p-6 space-y-6 border border-gray-100">
-                {/* Header row with title & close button */}
-                <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-gray-800">Where are you today?</h2>
-                    <button
-                        onClick={onClose}
-                        type="button"
-                        className="cursor-pointer rounded-full p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-                        aria-label="Close modal"
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
-
-                {/* City Search Form */}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Search Input with inline icon */}
-                    <div className="relative">
-                        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Enter your city name..."
-                            className="pl-11 pr-4 py-2.5 border border-gray-200 rounded-4xl w-full bg-gray-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700 font-medium placeholder:text-gray-400 transition-all"
-                            value={city}
-                            onChange={(e) => setCity(e.target.value)}
-                            disabled={loading}
-                        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+                <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="rounded-full bg-sky-100 p-2 text-sky-600">
+                            <LocateFixed size={18} />
+                        </div>
+                        <h2 className="text-xl font-semibold text-slate-800">Choose a location</h2>
                     </div>
 
-                    {/* Primary submit button with loading spinner */}
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="rounded-4xl w-full bg-blue-500 hover:bg-blue-600 active:scale-98 px-5 py-2.5 text-md font-medium text-white shadow-sm transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70"
-                    >
-                        {loading ? <Loader2 size={20} className="animate-spin" /> : <span>Check Weather</span>}
-                    </button>
-                </form>
-
-                {/* Section divider */}
-                <div className="relative flex items-center justify-center">
-                    <div className="w-full border-t border-gray-100"></div>
-                    <span className="bg-white px-3 text-xs font-semibold uppercase tracking-wider text-gray-400 absolute">
-                        or
-                    </span>
-                </div>
-
-                {/* Secondary geolocation trigger button */}
-                <div>
                     <button
                         type="button"
-                        onClick={handleGeolocation}
-                        disabled={loading}
-                        className="rounded-4xl w-full text-blue-500 border-2 border-blue-500 hover:bg-blue-50 active:scale-98 px-5 py-2.5 text-md font-medium bg-white transition-all cursor-pointer disabled:opacity-70"
+                        onClick={onClose}
+                        className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+                        aria-label="Close"
                     >
-                        <div className="flex justify-center items-center gap-2">
-                            <LocateFixed size={18} />
-                            <span>Use My Location</span>
-                        </div>
+                        <X size={18} />
                     </button>
                 </div>
 
-                {/* Conditional error message readout */}
-                {error && (
-                    <p className="text-sm text-red-500 font-medium text-center pt-1">
-                        {error}
-                    </p>
-                )}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-slate-700">City</span>
+                        <input
+                            type="text"
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            placeholder="Search by city"
+                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-800 outline-none transition focus:border-sky-400 focus:bg-white"
+                        />
+                    </label>
+
+                    {error && (
+                        <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+                            {error}
+                        </p>
+                    )}
+
+                    <div className="flex gap-3">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-sky-600 px-4 py-3 font-medium text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-sky-400"
+                        >
+                            {loading ? <Loader2 size={18} className="animate-spin" /> : <Search size={18} />}
+                            {loading ? "Searching..." : "Search"}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleGeolocation}
+                            disabled={loading}
+                            className="flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60"
+                            aria-label="Use current location"
+                        >
+                            <LocateFixed size={18} />
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );

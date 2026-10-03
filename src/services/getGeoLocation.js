@@ -1,8 +1,10 @@
 // Convert a city name into a single latitude/longitude pair for the weather API.
 // Open-Meteo returns a ranked list of matches; this app intentionally uses the first match.
 export const getGeoLocation = async (city) => {
+  const query = encodeURIComponent(city.trim());
 
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=en&format=json`;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${query}&count=1&language=en&format=json`;
+
   const response = await fetch(url);
 
   // Fail clearly if the geocoding request itself is unsuccessful.
@@ -24,5 +26,4 @@ export const getGeoLocation = async (city) => {
     lat: place.latitude,
     long: place.longitude,
   }
-
-}
+};
