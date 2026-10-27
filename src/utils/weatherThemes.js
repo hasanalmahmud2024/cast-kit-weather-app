@@ -56,6 +56,18 @@ export const getWeatherTheme = (condition = "", description = "", isDay = true) 
 
     // Clouds / Overcast Theme
     if (combined.includes("cloud") || combined.includes("overcast") || combined.includes("fog")) {
+        if (!isDay) {
+            return {
+                pageBg: "bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 text-slate-100",
+                cardBg: "bg-slate-900/70 backdrop-blur-md border-slate-700/70 shadow-lg shadow-slate-950/30",
+                textColor: "text-slate-300",
+                titleColor: "text-white",
+                badgeBg: "bg-slate-700/60 text-slate-200 border border-slate-600/70",
+                metricBg: "bg-slate-950/60 border-slate-700/60",
+                glowBg: "bg-blue-500/15",
+            };
+        }
+
         return {
             pageBg: "bg-gradient-to-br from-slate-200 via-blue-100/40 to-slate-300 text-slate-800",
             cardBg: "bg-white/80 backdrop-blur-md border-slate-300/70 shadow-lg shadow-slate-900/5",

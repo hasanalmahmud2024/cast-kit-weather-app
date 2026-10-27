@@ -22,21 +22,21 @@ const DailyForecastItem = ({ day, isToday, theme }) => {
         <div
             role="listitem"
             aria-label={ariaLabel}
-            className={`flex items-center justify-between gap-2 rounded-2xl border px-3 py-3 sm:flex-col sm:justify-center sm:text-center ${theme.metricBg}`}
+            className={`grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-2 rounded-2xl border px-3 py-3 sm:flex sm:flex-col sm:justify-center sm:text-center ${theme.metricBg}`}
         >
-            <div className="sm:space-y-1">
+            <div className="min-w-0 sm:space-y-1">
                 <p className={`text-sm font-semibold ${theme.titleColor}`}>{dayLabel}</p>
                 <p className={`text-xs opacity-70 ${theme.textColor}`}>{dateFormatted}</p>
             </div>
 
             {icon}
 
-            <div className="flex gap-2 text-sm sm:justify-center">
+            <div className="col-span-2 flex flex-wrap gap-x-2 text-xs sm:justify-center sm:text-sm">
                 <span className={`font-bold ${theme.titleColor}`}>High {highTemp}</span>
                 <span className={`opacity-70 ${theme.textColor}`}>Low {lowTemp}</span>
             </div>
 
-            <span className={`inline-flex items-center gap-1 whitespace-nowrap text-xs opacity-70 ${theme.textColor}`}>
+            <span className={`col-span-2 inline-flex items-center gap-1 whitespace-nowrap text-xs opacity-70 ${theme.textColor}`}>
                 <Droplets size={12} aria-hidden="true" />
                 Rain {rainChance}%
             </span>
