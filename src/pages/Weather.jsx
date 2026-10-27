@@ -10,6 +10,7 @@ import WeatherType from "../components/WeatherType";
 import Header from "../components/Header";
 import WeatherParticles from "../components/WeatherParticles";
 import { getWeatherTheme } from "../utils/weatherThemes";
+import ForecastCard from "../components/ForecastCard";
 
 const Weather = () => {
     const { state } = useLocation();
@@ -63,7 +64,7 @@ const Weather = () => {
                 <WeatherType weather={weather} place={place} />
 
                 {/* Bottom Row: Balanced 2-Column Details */}
-                <div className="grid gap-6 md:grid-cols-2 items-start">
+                <div className="grid items-stretch gap-6 md:grid-cols-2">
                     {/* Left Column: 6-Metric Highlights */}
                     <WeatherCard place={place} weather={weather} />
 
@@ -76,6 +77,8 @@ const Weather = () => {
                         />
                     )}
                 </div>
+
+                <ForecastCard weather={weather} />
             </div>
         </div>
     );

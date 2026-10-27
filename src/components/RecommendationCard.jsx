@@ -22,7 +22,7 @@ const RecommendationCard = ({ weather, place, recommendation }) => {
     if (!recommendation) return null;
 
     return (
-        <div className={`relative overflow-hidden rounded-3xl border p-6 transition-all duration-300 space-y-5 ${theme.cardBg}`}>
+        <div className={`relative h-full overflow-hidden rounded-3xl border p-6 transition-all duration-300 space-y-5 ${theme.cardBg}`}>
             {/* Ambient Corner Glow */}
             <div className={`absolute -right-12 -bottom-12 h-44 w-44 rounded-full blur-3xl pointer-events-none ${theme.glowBg}`} />
 

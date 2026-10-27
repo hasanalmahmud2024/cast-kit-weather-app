@@ -3,7 +3,7 @@
  * - condition: Stable machine-readable category for application logic.
  * - description: Detailed description corresponding to the WMO code.
  * - label: Short, human-friendly text for UI.
- * - ison: Broad icon category used to select a weather icon.
+ * - icon: Broad icon category used to select a weather icon.
  */
 const WMO_CODES = {
     // CLEAR / CLOUD CONDITIONS
@@ -258,54 +258,113 @@ const WMO_CODES = {
 };
 
 const isNumber = (value) => typeof value === "number" && Number.isFinite(value);
+const CURRENT_FIELDS = [
+    "temperature_2m",
+    "is_day",
+    "wind_speed_10m",
+    "weather_code",
+    "relative_humidity_2m",
+    "apparent_temperature",
+    "wind_direction_10m",
+    "precipitation",
+    "rain",
+    "showers",
+    "snowfall",
+    "surface_pressure",
+].join(",");
+const HOURLY_FIELDS = "temperature_2m,precipitation_probability,weather_code,is_day";
+const DAILY_FIELDS = "weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max";
 
-export const getWeather = async (place) => {
-    const { name, lat, long } = place ?? {};
+// Keep missing or invalid forecast values as null for the UI to display safely.
+const toFiniteOrNull = (value) => {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : null;
+};
 
-    if (!isNumber(lat) || !isNumber(long)) {
-        throw new Error("Location coordinates are missing or invalid.");
+// Open-Meteo returns parallel arrays, so every requested field must match the time array.
+const hasForecastFields = (forecast, fields) =>
+    Array.isArray(forecast?.time) &&
+    forecast.time.every((time) => typeof time === "string") &&
+    fields.every((field) => Array.isArray(forecast[field]) && forecast[field].length >= forecast.time.length);
+
+// Shape the API's parallel arrays into forecast entries consumed by the weather UI.
+const getForecasts = (data, currentTime) => {
+    const { hourly, daily } = data;
+    const hourlyFields = ["temperature_2m", "precipitation_probability", "weather_code", "is_day"];
+    const dailyFields = [
+        "temperature_2m_max",
+        "temperature_2m_min",
+        "precipitation_probability_max",
+        "weather_code",
+    ];
+
+    if (!hasForecastFields(hourly, hourlyFields) || !hasForecastFields(daily, dailyFields)) {
+        throw new Error("Weather response did not contain hourly and daily forecasts.");
     }
 
-    const url =
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}` +
-        `&current=temperature_2m,is_day,wind_speed_10m,weather_code,relative_humidity_2m,apparent_temperature,wind_direction_10m,precipitation,rain,showers,snowfall,surface_pressure`;
+    const currentHour = typeof currentTime === "string" ? currentTime.slice(0, 13) : "";
+    // API timestamps are local ISO strings, so lexical comparison finds the current hour.
+    const firstHourIndex = hourly.time.findIndex((time) => time >= currentHour);
+    const hourlyStart = Math.max(0, firstHourIndex);
 
-    const result = await fetch(url);
+    const hourlyForecast = hourly.time
+        .slice(hourlyStart, hourlyStart + 24)
+        .map((time, index) => {
+            const forecastIndex = hourlyStart + index;
 
-    if (!result.ok) {
-        throw new Error(`Weather request failed (${result.status}).`);
+            return {
+                time,
+                temperature: toFiniteOrNull(hourly.temperature_2m[forecastIndex]),
+                precipitationProbability: toFiniteOrNull(hourly.precipitation_probability[forecastIndex]),
+                weatherCode: toFiniteOrNull(hourly.weather_code[forecastIndex]),
+                isDay: Number(hourly.is_day[forecastIndex]) === 1,
+            };
+        });
+
+    const dailyForecast = daily.time.slice(0, 7).map((date, index) => ({
+        date,
+        high: toFiniteOrNull(daily.temperature_2m_max[index]),
+        low: toFiniteOrNull(daily.temperature_2m_min[index]),
+        precipitationProbability: toFiniteOrNull(daily.precipitation_probability_max[index]),
+        weatherCode: toFiniteOrNull(daily.weather_code[index]),
+    }));
+
+    if (hourlyForecast.length < 24 || dailyForecast.length < 7) {
+        throw new Error("Weather response did not contain forecast data.");
     }
 
-    const data = await result.json();
-    const now = data?.current;
+    return { hourlyForecast, dailyForecast };
+};
 
-    if (!now) {
-        throw new Error("Weather response did not contain current conditions.");
-    }
+const buildForecastUrl = (lat, long) => {
+    const url = new URL("https://api.open-meteo.com/v1/forecast");
+    url.search = new URLSearchParams({
+        latitude: lat,
+        longitude: long,
+        current: CURRENT_FIELDS,
+        hourly: HOURLY_FIELDS,
+        daily: DAILY_FIELDS,
+        forecast_days: "7",
+        timezone: "auto",
+    });
 
-    const weatherCode = Number(now.weather_code);
-    if (!Number.isFinite(weatherCode)) {
-        throw new Error("Weather code is missing or invalid.");
-    }
+    return url;
+};
 
-    const weather = WMO_CODES[weatherCode];
-    if (!weather) {
-        throw new Error(`Unsupported weather code: ${weatherCode}.`);
-    }
+const getCurrentConditions = (current, weather) => {
+    const temperature = Number(current.temperature_2m);
+    const humidity = Number(current.relative_humidity_2m);
+    const windSpeed = Number(current.wind_speed_10m);
+    const feelsLike = Number(current.apparent_temperature);
+    const surfacePressure = Number(current.surface_pressure);
+    const precipitation = Number(current.precipitation);
+    const windDirection = Number(current.wind_direction_10m);
+    const isDay = Number(current.is_day);
 
-    const temperature = Number(now.temperature_2m);
-    const humidity = Number(now.relative_humidity_2m);
-    const windSpeed = Number(now.wind_speed_10m);
-    const feelsLike = Number(now.apparent_temperature);
-    const surfacePressure = Number(now.surface_pressure);
-    const precipitation = Number(now.precipitation);
-    const windDirection = Number(now.wind_direction_10m);
-    const isDay = Number(now.is_day);
-
+    // Use a separate icon for clear nights while keeping the WMO condition unchanged.
     const icon = weather.icon === "clear" && isDay === 0 ? "clear_night" : weather.icon;
 
     return {
-        location: name,
         temperature: Math.round(temperature),
         humidity,
         windSpeed,
@@ -319,4 +378,55 @@ export const getWeather = async (place) => {
         conditionLabel: weather.label,
         icon,
     };
+};
+
+export const getWeather = async (place) => {
+    const { name, lat, long } = place ?? {};
+
+    if (!isNumber(lat) || !isNumber(long)) {
+        throw new Error("Location coordinates are missing or invalid.");
+    }
+
+    const response = await fetch(buildForecastUrl(lat, long));
+    if (!response.ok) {
+        throw new Error(`Weather request failed (${response.status}).`);
+    }
+
+    const data = await response.json();
+    const current = data?.current;
+    if (!current) {
+        throw new Error("Weather response did not contain current conditions.");
+    }
+
+    const weatherCode = Number(current.weather_code);
+    if (!Number.isFinite(weatherCode)) {
+        throw new Error("Weather code is missing or invalid.");
+    }
+
+    const weather = WMO_CODES[weatherCode];
+    if (!weather) {
+        throw new Error(`Unsupported weather code: ${weatherCode}.`);
+    }
+
+    const currentConditions = getCurrentConditions(current, weather);
+    const forecasts = getForecasts(data, current.time);
+
+    return {
+        location: name,
+        ...currentConditions,
+        ...forecasts,
+    };
+};
+
+export const getWeatherDescription = (weatherCode) => {
+    if (weatherCode === null || weatherCode === undefined || weatherCode === "") {
+        return "Unknown conditions";
+    }
+
+    const code = Number(weatherCode);
+    if (!Number.isFinite(code)) {
+        return "Unknown conditions";
+    }
+
+    return WMO_CODES[code]?.description ?? "Unknown conditions";
 };

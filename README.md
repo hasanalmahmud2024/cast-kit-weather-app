@@ -10,12 +10,13 @@ CastKit Weather is a responsive weather dashboard for checking current condition
 - **Current location:** Use your device's location after granting browser permission.
 - **Bangladesh quick picks:** Open current conditions for popular cities, including Dhaka, Chattogram, Sylhet, Rajshahi, Khulna, and Cox's Bazar.
 - **Live conditions:** View current temperature, feels-like temperature, humidity, wind speed and direction, surface pressure, and precipitation.
+- **Weather forecasts:** See the next 24 hours of temperature and precipitation chances, plus a 7-day outlook with daily highs, lows, and precipitation chances.
 - **Weather-aware presentation:** Condition-specific visuals, themes, and particle effects respond to weather and day/night conditions.
 - **Practical recommendations:** Get contextual clothing and activity suggestions based on current conditions.
 - **Responsive interface:** Use the dashboard on desktop and mobile screens.
 - **About page:** Review a brief overview of the app and its technologies.
 
-Weather and city search use the public [Open-Meteo APIs](https://open-meteo.com/). The app shows current conditions, not hourly or multi-day forecasts.
+Weather and city search use the public [Open-Meteo APIs](https://open-meteo.com/). Forecast times are shown in the selected location's local time.
 
 ## Tech stack
 
@@ -69,7 +70,7 @@ No environment variables are required. The app requests data directly from Open-
 
 1. On the home page, choose a popular Bangladesh city or select **Search Weather**.
 2. Search by city name, or select the location button and allow browser location access.
-3. Review the current conditions, atmospheric metrics, and recommendations on the weather page.
+3. Review the current conditions, hourly and 7-day forecasts, atmospheric metrics, and recommendations on the weather page.
 4. Use **Search Location** to look up another city, or use the footer to return home or open the About page.
 
 City searches use the first matching result returned by Open-Meteo. If location permission is denied or unavailable, search by city instead. The `/weather` page expects a location selected through the app.

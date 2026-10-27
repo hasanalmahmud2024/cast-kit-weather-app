@@ -18,7 +18,7 @@ const WeatherCard = ({ weather }) => {
     ];
 
     return (
-        <div className={`relative overflow-hidden rounded-3xl border p-6 transition-all duration-300 space-y-5 ${theme.cardBg}`}>
+        <div className={`relative h-full overflow-hidden rounded-3xl border p-6 transition-all duration-300 space-y-5 ${theme.cardBg}`}>
             <h2 className={`text-lg font-bold tracking-wide ${theme.titleColor}`}>
                 Condition Metrics
             </h2>
