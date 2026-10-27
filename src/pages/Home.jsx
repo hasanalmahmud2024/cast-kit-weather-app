@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, MapPin, Sparkles } from "lucide-react";
+import { Search, MapPin } from "lucide-react";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
 import LocationModal from "../components/LocationModal";
@@ -25,7 +25,7 @@ const Home = () => {
     };
 
     return (
-        <div className="relative min-h-[85vh] flex flex-col items-center justify-center p-4 overflow-hidden">
+        <div className="relative min-h-[99vh] flex flex-col items-center justify-center p-4 overflow-hidden">
             {/* Ambient Background Blur Layers */}
             <div className="absolute top-1/4 -left-20 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-sky-300/20 rounded-full blur-3xl pointer-events-none" />
@@ -43,19 +43,19 @@ const Home = () => {
                 </div>
 
                 {/* Hero Title */}
-                <div className="space-y-3">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100/80 text-blue-700 text-xs font-semibold tracking-wide">
-                        <Sparkles size={14} />
-                        <span>Live Weather Forecasting</span>
+                <div className="flex flex-col items-center space-y-4">
+                    {/* Centered Decorative Line */}
+                    <div className="h-1 w-12 rounded-full bg-linear-to-r from-blue-500 to-indigo-500" />
+
+                    <div className="space-y-3">
+                        <h1 className="text-5xl md:text-6xl font-extrabold text-slate-800 tracking-tight leading-tight">
+                            CastKit <span className="text-blue-500">Weather</span>
+                        </h1>
+
+                        <p className="text-base md:text-lg text-slate-600 font-medium max-w-md mx-auto">
+                            Real-time forecasts, atmospheric metrics, and dynamic conditions for cities across Bangladesh and worldwide.
+                        </p>
                     </div>
-
-                    <h1 className="text-5xl md:text-6xl font-extrabold text-slate-800 tracking-tight leading-tight">
-                        CastKit <span className="text-blue-500">Weather</span>
-                    </h1>
-
-                    <p className="text-base md:text-lg text-slate-600 font-medium max-w-md mx-auto">
-                        Real-time forecasts, atmospheric metrics, and dynamic conditions for cities across Bangladesh and worldwide.
-                    </p>
                 </div>
 
                 {/* Main Action Button */}
